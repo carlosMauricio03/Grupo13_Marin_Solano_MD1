@@ -1,16 +1,14 @@
 import os
 import logging
-from dotenv import load_dotenv
 
-from extractor import extract_rates
-from transformer import transform_rates
-from loader import insert_currency
-from db_connection import get_connection
+from config import settings  
 
+from etl.extractor import extract_rates
+from etl.transformer import transform_rates
+from etl.loader import insert_currency
+from etl.db_connection import get_connection
 
 def main():
-    load_dotenv()
-
     api_key = os.getenv("API_KEY")
     base_currency = os.getenv("BASE_CURRENCY")
 
@@ -19,20 +17,17 @@ def main():
 
     logging.info("Iniciando proceso ETL...")
 
-    # EXTRACT
     data = extract_rates(api_key, base_currency)
 
     if not data:
         logging.warning("No se pudieron obtener datos.")
         return
 
-    # TRANSFORM
     records = transform_rates(data)
 
     logging.info(f"Total registros transformados: {len(records)}")
     logging.info(f"Ejemplo registro: {records[0]}")
 
-    # LOAD
     conn = get_connection()
     cursor = conn.cursor()
 

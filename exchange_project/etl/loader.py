@@ -1,4 +1,4 @@
-from db_connection import get_connection
+from etl.db_connection import get_connection
 
 def insert_currency(cursor, code):
     cursor.execute("""
