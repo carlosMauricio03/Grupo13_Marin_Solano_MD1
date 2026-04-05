@@ -1,9 +1,19 @@
-venv/
-__pycache__/
+# Entornos
 .env
+.env.local
+.env.prod
+
+# Python
+__pycache__/
 *.pyc
-postgres_data/
-# Mac
+
+# Entorno virtual
+venv/
+.env/
+
+# VSCode
+.vscode/
+
+# OS
 .DS_Store
-.AppleDouble
-.LSOverride
+Thumbs.db
