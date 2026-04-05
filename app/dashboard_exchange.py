@@ -19,32 +19,39 @@ st.title("💱 Dashboard de Tipo de Cambio")
 st.markdown("---")
 
 # ==============================
-# CONEXIÓN
+# CACHE DATA (CLAVE 🔥)
 # ==============================
 
-conn = get_connection()
+@st.cache_data(ttl=300)  # cache por 5 minutos
+def load_data():
+    conn = get_connection()
 
-query = """
-SELECT 
-    er.id,
-    c1.code AS base_currency,
-    c2.code AS target_currency,
-    er.rate,
-    er.timestamp
-FROM exchange_rates er
-JOIN currencies c1 ON er.base_currency_id = c1.id
-JOIN currencies c2 ON er.target_currency_id = c2.id
-ORDER BY er.timestamp DESC;
-"""
+    query = """
+    SELECT 
+        er.id,
+        c1.code AS base_currency,
+        c2.code AS target_currency,
+        er.rate,
+        er.timestamp
+    FROM exchange_rates er
+    JOIN currencies c1 ON er.base_currency_id = c1.id
+    JOIN currencies c2 ON er.target_currency_id = c2.id
+    ORDER BY er.timestamp DESC;
+    """
 
-df = pd.read_sql(query, conn)
-conn.close()
+    df = pd.read_sql(query, conn)
+    conn.close()
+
+    df["timestamp"] = pd.to_datetime(df["timestamp"])
+
+    return df
+
+
+df = load_data()
 
 if df.empty:
     st.warning("No hay datos en la base de datos.")
     st.stop()
-
-df["timestamp"] = pd.to_datetime(df["timestamp"])
 
 # ==============================
 # SIDEBAR FILTROS
@@ -90,7 +97,7 @@ with col3:
 st.markdown("---")
 
 # ==============================
-# GRÁFICA 1 — Último Rate por Moneda
+# GRÁFICA 1
 # ==============================
 
 st.subheader("📈 Última Tasa por Moneda")
@@ -113,7 +120,7 @@ fig_bar = px.bar(
 st.plotly_chart(fig_bar, use_container_width=True)
 
 # ==============================
-# GRÁFICA 2 — Evolución histórica
+# GRÁFICA 2
 # ==============================
 
 st.subheader("📉 Evolución Histórica")
@@ -130,12 +137,16 @@ fig_line = px.line(
 st.plotly_chart(fig_line, use_container_width=True)
 
 # ==============================
-# TABLA
+# TABLA (ESTABLE)
 # ==============================
 
 st.subheader("📋 Datos Detallados")
 
+# evitar recalculo innecesario
+df_table = df_filtered.sort_values("timestamp", ascending=False)
+
 st.dataframe(
-    df_filtered.sort_values("timestamp", ascending=False),
+    df_table,
     use_container_width=True,
-    )
+    height=500  # 🔥 evita resize dinámico (causa del "salto")
+)
