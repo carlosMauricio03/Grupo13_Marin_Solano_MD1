@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   postgres:
     image: postgres:16
@@ -14,6 +12,21 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+
+  jupyter:
+    image: python:3.11
+    container_name: exchange_jupyter
+    working_dir: /app
+    volumes:
+      - .:/app
+    ports:
+      - "8888:8888"
+    env_file:
+      - .env.local
+    command: >
+      bash -c "pip install --upgrade pip &&
+              pip install -r requirements-notebook.txt &&
+              jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root"
 
 volumes:
   postgres_data:

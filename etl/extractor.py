@@ -1,7 +1,6 @@
 import requests
 import logging
 
-
 def extract_rates(api_key: str, base_currency: str):
     url = f"https://v6.exchangerate-api.com/v6/{api_key}/latest/{base_currency}"
 
