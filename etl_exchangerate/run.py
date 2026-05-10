@@ -2,11 +2,10 @@ import os
 import logging
 
 from config import settings
-
-from etl.extractor import extract_rates
-from etl.transformer import transform_rates
-from etl.loader import load_rates
-from etl.db_connection import get_connection
+from config.database import get_connection
+from etl_exchangerate.extractor import extract_rates
+from etl_exchangerate.transformer import transform_rates
+from etl_exchangerate.loader import load_rates
 
 
 def main():
@@ -16,16 +15,14 @@ def main():
     if not api_key:
         raise ValueError("No se encontró la API_KEY en el entorno.")
 
-    logging.info("Iniciando proceso ETL...")
+    logging.info("Iniciando proceso ETL ExchangeRate...")
 
-    # 1. EXTRACT
     data = extract_rates(api_key, base_currency)
 
     if not data:
         logging.warning("No se pudieron obtener datos.")
         return
 
-    # 2. TRANSFORM
     records = transform_rates(data)
 
     if not records:
@@ -33,9 +30,7 @@ def main():
         return
 
     logging.info(f"Total registros transformados: {len(records)}")
-    logging.info(f"Ejemplo registro: {records[0]}")
 
-    # 3. LOAD
     conn = get_connection()
 
     try:

@@ -1,0 +1,41 @@
+name: grupo13_marin_solano_md1
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: exchange_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  jupyter:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: jupyter
+    working_dir: /app
+    volumes:
+      - ../notebooks:/app
+    ports:
+      - "8888:8888"
+    env_file:
+      - ../.env.local
+    command: jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token='' --NotebookApp.allow_origin='*'
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
